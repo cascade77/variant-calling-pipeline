@@ -198,7 +198,7 @@ sbatch variant_calling.slurm
 squeue -u arooj.sines
 ```
 # Example SLURM script (variant_calling.slurm):
-# ----------------------------------------------
+Slurm will manage jobs.
 ```bash
 #!/bin/bash
 #SBATCH --job-name=variant_calling
@@ -208,7 +208,7 @@ squeue -u arooj.sines
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=32G
 ```
-module load singularity
+# module load singularity
 ```bash
 # Run Clair3
 singularity exec clair3.sif run_clair3.sh \
