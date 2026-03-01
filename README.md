@@ -309,3 +309,9 @@ cd variant-calling-pipeline
 ```
 
 Then run each script in the corresponding section folder.
+
+SUBMITTED BY:
+**Syeda Momina
+**Arooj Fatima
+**Zainab Bilal
+**Hadia Shafiq
