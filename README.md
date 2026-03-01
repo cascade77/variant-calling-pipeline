@@ -134,58 +134,100 @@ Alignmnet part must provide you with the following output files:
 | aligned.sorted.bam.bai | BAM index |## Variant Calling
 
 
-# Variant Calling Pipeline (Clair3 + DeepVariant)
 
-## Overview
+# Person 3: Variant Calling
 
-This repository contains the commands required to perform variant calling 
-on an aligned BAM file using Clair3 and DeepVariant.
-
-The pipeline takes a sorted and indexed BAM file aligned to GRCh38 
-and produces compressed VCF files containing SNP and INDEL calls.
+This section describes the variant calling workflow for PacBio HiFi reads using **Clair3** and **DeepVariant** within **Singularity** containers.  
 
 ---
-
-## Requirements
-
-- Singularity (or Docker)
-- aligned.sorted.bam
-- aligned.sorted.bam.bai
-- GRCh38.fa
-
----
-
-## How to Run
-
-Execute the pipeline script:
 
 ```bash
-bash variant_calling.sh
+# 1️⃣ Pull Containers
+# Download the Clair3 and DeepVariant containers from Docker Hub
+singularity pull clair3.sif docker://hkubal/clair3:latest
+singularity pull deepvariant.sif docker://google/deepvariant:1.6.0
 
-## Benchmarking & Results
+# 2️⃣ Identify Clair3 Model Path
+# Find where the pre-trained models are stored inside the Clair3 container
+singularity exec clair3.sif find / -type d -name "models" 2>/dev/null
+singularity exec clair3.sif ls /opt/models
+# For PacBio HiFi reads, we use: /opt/models/hifi
 
-Variant calls from both **Clair3** and **DeepVariant** were benchmarked against the **GIAB HG002 v4.2.1 truth set** using [hap.py](https://github.com/Illumina/hap.py), restricted to high-confidence regions defined by the GIAB BED file.
+# 3️⃣ Run Clair3 for Variant Calling
+# Inputs: aligned BAM, reference genome, model path, threads, platform
+# Output: VCF files containing variant calls
+singularity exec clair3.sif \
+run_clair3.sh \
+-b aligned.sorted.bam \
+-f GRCh38.fa \
+-m /opt/models/hifi \
+-t 8 \
+-p hifi \
+-o clair3_output
 
----
+# Rename outputs for clarity
+mv clair3_output/merge_output.vcf.gz clair3.vcf.gz
+mv clair3_output/merge_output.vcf.gz.tbi clair3.vcf.gz.tbi
 
-### Benchmark Truth Set
+# 4️⃣ Run DeepVariant for Variant Calling
+# Inputs: aligned BAM, reference genome
+# Output: deepvariant.vcf.gz
+singularity exec deepvariant.sif \
+/opt/deepvariant/bin/run_deepvariant \
+--model_type=PACBIO \
+--ref=GRCh38.fa \
+--reads=aligned.sorted.bam \
+--output_vcf=deepvariant.vcf.gz \
+--num_shards=8
 
-| File | Description |
-|------|-------------|
-| `HG002_GRCh38_1_22_v4.2.1_benchmark.vcf.gz` | GIAB truth set VCF (HG002, GRCh38) |
-| `HG002_GRCh38_1_22_v4.2.1_benchmark_noinconsistent.bed` | High-confidence regions BED file |
-| `GRCh38.fa` | GRCh38 reference genome |
+# Index the DeepVariant VCF for downstream tools
+singularity exec deepvariant.sif tabix -p vcf deepvariant.vcf.gz
 
----
+# 5️⃣ Optional: Submit as SLURM Job
+# Automate variant calling on an HPC cluster
+sbatch variant_calling.slurm
+squeue -u arooj.sines
 
-### Environment Setup
+# Example SLURM script (variant_calling.slurm):
+# ----------------------------------------------
+#!/bin/bash
+#SBATCH --job-name=variant_calling
+#SBATCH --output=variant_calling.out
+#SBATCH --error=variant_calling.err
+#SBATCH --time=48:00:00
+#SBATCH --cpus-per-task=8
+#SBATCH --mem=32G
 
-```bash
-conda activate /hdd4/sines/specialtopicsinbioinformatics/arooj.sines/miniconda3/envs/happy
-cd ~/assignment1/data
+module load singularity
+
+# Run Clair3
+singularity exec clair3.sif run_clair3.sh \
+-b aligned.sorted.bam \
+-f GRCh38.fa \
+-m /opt/models/hifi \
+-t 8 \
+-p hifi \
+-o clair3_output
+
+mv clair3_output/merge_output.vcf.gz clair3.vcf.gz
+mv clair3_output/merge_output.vcf.gz.tbi clair3.vcf.gz.tbi
+
+# Run DeepVariant
+singularity exec deepvariant.sif \
+/opt/deepvariant/bin/run_deepvariant \
+--model_type=PACBIO \
+--ref=GRCh38.fa \
+--reads=aligned.sorted.bam \
+--output_vcf=deepvariant.vcf.gz \
+--num_shards=8
+
+# 6️⃣ Output Files (Deliverables for Person 3)
+# clair3.vcf.gz
+# clair3.vcf.gz.tbi
+# deepvariant.vcf.gz
+# deepvariant.vcf.gz.tbi
+# variant_calling.slurm
 ```
-
----
 
 ### Running hap.py (Both Benchmarks in Parallel)
 
