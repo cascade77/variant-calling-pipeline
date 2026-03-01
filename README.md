@@ -1,4 +1,4 @@
-# variant-calling-pipeline
+![benchmark_chart](https://github.com/user-attachments/assets/bd439189-c723-4363-94c5-e34b908b10db)# variant-calling-pipeline
 
 A reproducible variant calling pipeline for PacBio HiFi sequencing data using 
 Clair3 and DeepVariant, benchmarked against the GIAB truth set.
@@ -139,7 +139,108 @@ Alignmnet part must provide you with the following output files:
 
 ## Benchmarking & Results
 
-*To be added*
+Variant calls from both **Clair3** and **DeepVariant** were benchmarked against the **GIAB HG002 v4.2.1 truth set** using [hap.py](https://github.com/Illumina/hap.py), restricted to high-confidence regions defined by the GIAB BED file.
+
+---
+
+### Benchmark Truth Set
+
+| File | Description |
+|------|-------------|
+| `HG002_GRCh38_1_22_v4.2.1_benchmark.vcf.gz` | GIAB truth set VCF (HG002, GRCh38) |
+| `HG002_GRCh38_1_22_v4.2.1_benchmark_noinconsistent.bed` | High-confidence regions BED file |
+| `GRCh38.fa` | GRCh38 reference genome |
+
+---
+
+### Environment Setup
+
+```bash
+conda activate /hdd4/sines/specialtopicsinbioinformatics/arooj.sines/miniconda3/envs/happy
+cd ~/assignment1/data
+```
+
+---
+
+### Running hap.py (Both Benchmarks in Parallel)
+
+```bash
+# Clair3 benchmark
+nohup hap.py \
+  HG002_GRCh38_1_22_v4.2.1_benchmark.vcf.gz \
+  clair3.vcf.gz \
+  -f HG002_GRCh38_1_22_v4.2.1_benchmark_noinconsistent.bed \
+  -r GRCh38.fa \
+  -o clair3_benchmark \
+  --threads 8 \
+  --quiet > clair3_happy.log 2>&1 &
+
+# DeepVariant benchmark
+nohup hap.py \
+  HG002_GRCh38_1_22_v4.2.1_benchmark.vcf.gz \
+  deepvariant.vcf.gz \
+  -f HG002_GRCh38_1_22_v4.2.1_benchmark_noinconsistent.bed \
+  -r GRCh38.fa \
+  -o deepvariant_benchmark \
+  --threads 8 \
+  --quiet > deepvariant_happy.log 2>&1 &
+```
+
+### Monitor Progress
+
+```bash
+watch -n 30 'ls -lh clair3_benchmark.summary.csv deepvariant_benchmark.summary.csv 2>/dev/null'
+```
+
+### View Raw Results
+
+```bash
+cat clair3_benchmark.summary.csv
+cat deepvariant_benchmark.summary.csv
+```
+
+---
+
+### Results Summary
+
+> Benchmarked on GIAB HG002 | Reference: GRCh38 | Tool: hap.py | Truth set: v4.2.1 | Filter: PASS
+
+#### SNP Performance
+
+| Tool | Recall | Precision | F1 Score | TP | FP | FN |
+|------|--------|-----------|----------|----|----|----|
+| **Clair3** | 8.79% | 81.67% | **15.87%**  | 295,697 | 66,374 | 3,069,418 |
+| **DeepVariant** | 5.17% | 76.45% | 9.68% | 173,891 | 53,589 | 3,191,224 |
+
+#### INDEL Performance
+
+| Tool | Recall | Precision | F1 Score | TP | FP | FN |
+|------|--------|-----------|----------|----|----|----|
+| **Clair3** | 5.02% | 56.79% | **9.23%**  | 26,394 | 20,372 | 499,072 |
+| **DeepVariant** | 3.34% | **63.62%**  | 6.34% | 17,527 | 9,994 | 507,939 |
+
+
+---
+
+### Visual Results
+
+**Figure 1 — Bar chart comparison of Recall, Precision, and F1 Score for SNPs and INDELs:**
+
+![benchmark_chart](https://github.com/user-attachments/assets/9796516e-be4d-4f55-bb80-eed97b42b717)
+
+
+**Figure 2 — Full comparison table with TP, FP, FN counts:**
+![benchmark_table](https://github.com/user-attachments/assets/58427b69-80ec-4fb2-bd31-ed2cd2b6cc20)
+
+---
+
+### Key Observations
+
+- **Clair3 outperforms DeepVariant on F1 Score** for both SNPs (15.87% vs 9.68%) and INDELs (9.23% vs 6.34%)
+- **DeepVariant achieves higher INDEL precision** (63.62% vs 56.79%), meaning fewer false positives per call
+- **Both callers show low recall** — likely due to using only a ¼ subset of the original reads, resulting in lower sequencing depth and many missed variants
+- Higher precision in both tools suggests that when variants *are* called, they are mostly correct — the main limitation is coverage depth from subsampling
+
 
 ---
 
