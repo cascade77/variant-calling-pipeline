@@ -208,7 +208,7 @@ Slurm will manage jobs.
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=32G
 ```
-# module load singularity
+# 7. module load singularity
 ```bash
 # Run Clair3
 singularity exec clair3.sif run_clair3.sh \
@@ -222,7 +222,7 @@ singularity exec clair3.sif run_clair3.sh \
 mv clair3_output/merge_output.vcf.gz clair3.vcf.gz
 mv clair3_output/merge_output.vcf.gz.tbi clair3.vcf.gz.tbi
 ```
-# Run DeepVariant
+# 8. Run DeepVariant
 ```bash
 singularity exec deepvariant.sif \
 /opt/deepvariant/bin/run_deepvariant \
@@ -232,7 +232,7 @@ singularity exec deepvariant.sif \
 --output_vcf=deepvariant.vcf.gz \
 --num_shards=8
 ```
-# 6️⃣ Output Files
+# Output Files
  clair3.vcf.gz
  
  clair3.vcf.gz.tbi
