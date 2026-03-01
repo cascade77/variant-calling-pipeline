@@ -141,21 +141,24 @@ This section describes the variant calling workflow for PacBio HiFi reads using 
 
 ---
 
-```bash
+
 # 1️⃣ Pull Containers
 # Download the Clair3 and DeepVariant containers from Docker Hub
+```bash
 singularity pull clair3.sif docker://hkubal/clair3:latest
 singularity pull deepvariant.sif docker://google/deepvariant:1.6.0
-
-# 2️⃣ Identify Clair3 Model Path
+```
+# Identify Clair3 Model Path
 # Find where the pre-trained models are stored inside the Clair3 container
+```bash
 singularity exec clair3.sif find / -type d -name "models" 2>/dev/null
 singularity exec clair3.sif ls /opt/models
 # For PacBio HiFi reads, we use: /opt/models/hifi
-
+```
 # 3️⃣ Run Clair3 for Variant Calling
 # Inputs: aligned BAM, reference genome, model path, threads, platform
 # Output: VCF files containing variant calls
+```bash
 singularity exec clair3.sif \
 run_clair3.sh \
 -b aligned.sorted.bam \
@@ -164,14 +167,16 @@ run_clair3.sh \
 -t 8 \
 -p hifi \
 -o clair3_output
-
+```
 # Rename outputs for clarity
+```bash
 mv clair3_output/merge_output.vcf.gz clair3.vcf.gz
 mv clair3_output/merge_output.vcf.gz.tbi clair3.vcf.gz.tbi
-
+```
 # 4️⃣ Run DeepVariant for Variant Calling
 # Inputs: aligned BAM, reference genome
 # Output: deepvariant.vcf.gz
+```bash
 singularity exec deepvariant.sif \
 /opt/deepvariant/bin/run_deepvariant \
 --model_type=PACBIO \
@@ -179,17 +184,20 @@ singularity exec deepvariant.sif \
 --reads=aligned.sorted.bam \
 --output_vcf=deepvariant.vcf.gz \
 --num_shards=8
-
+```
 # Index the DeepVariant VCF for downstream tools
+```bash
 singularity exec deepvariant.sif tabix -p vcf deepvariant.vcf.gz
-
+```
 # 5️⃣ Optional: Submit as SLURM Job
 # Automate variant calling on an HPC cluster
+```bash
 sbatch variant_calling.slurm
 squeue -u arooj.sines
-
+```
 # Example SLURM script (variant_calling.slurm):
 # ----------------------------------------------
+```bash
 #!/bin/bash
 #SBATCH --job-name=variant_calling
 #SBATCH --output=variant_calling.out
@@ -197,9 +205,9 @@ squeue -u arooj.sines
 #SBATCH --time=48:00:00
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=32G
-
+```
 module load singularity
-
+```bash
 # Run Clair3
 singularity exec clair3.sif run_clair3.sh \
 -b aligned.sorted.bam \
@@ -211,8 +219,9 @@ singularity exec clair3.sif run_clair3.sh \
 
 mv clair3_output/merge_output.vcf.gz clair3.vcf.gz
 mv clair3_output/merge_output.vcf.gz.tbi clair3.vcf.gz.tbi
-
+```
 # Run DeepVariant
+```bash
 singularity exec deepvariant.sif \
 /opt/deepvariant/bin/run_deepvariant \
 --model_type=PACBIO \
@@ -220,14 +229,14 @@ singularity exec deepvariant.sif \
 --reads=aligned.sorted.bam \
 --output_vcf=deepvariant.vcf.gz \
 --num_shards=8
-
+```
 # 6️⃣ Output Files (Deliverables for Person 3)
 # clair3.vcf.gz
 # clair3.vcf.gz.tbi
 # deepvariant.vcf.gz
 # deepvariant.vcf.gz.tbi
 # variant_calling.slurm
-```
+
 
 ### Running hap.py (Both Benchmarks in Parallel)
 
