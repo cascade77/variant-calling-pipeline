@@ -10,7 +10,7 @@ Clair3 and DeepVariant, benchmarked against the GIAB truth set.
 - **Reference genome:** GRCh38
 
 ## Pipeline Overview
-
+```
 variant-calling-pipeline/
 ├── data_preparation/
 │   └── data_prep.sh
@@ -22,7 +22,7 @@ variant-calling-pipeline/
 ├── benchmarking/
 │   └── benchmark.sh
 └── README.md
-
+```
 
 ---
 
