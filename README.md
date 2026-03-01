@@ -3,6 +3,8 @@
 A reproducible variant calling pipeline for PacBio HiFi sequencing data using 
 Clair3 and DeepVariant, benchmarked against the GIAB truth set.
 
+> This repository is part of the coursework for BI-436 Special Topics in Bioinformatics.
+
 ## Dataset
 
 - **Sample:** HG002 (NA24385) — GIAB reference sample
@@ -65,22 +67,22 @@ Aligning HiFi sequencing reads using minimap2
 Converting, sorting, and indexing alignment files using samtools
 Generating alignment statistics
 
-###  Step 1  Download Reference Genome
+### Download Reference Genome
 ```bash
 wget https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/000/001/405/GCA_000001405.15_GRCh38/seqs_for_alignment_pipelines.ucsc_ids/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.gz
 ```
-### Step 2  Extract Genome File
+### Extract Genome File
 ```bash
 gunzip GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.gz
 ```
-### Step 3  Rename Reference File
+### Rename Reference File
 
 Renaming for simplicity.
 ```bash
 mv GCA_000001405.15_GRCh38_no_alt_analysis_set.fna GRCh38.fa
 ```
 
-### Step 4 Create Conda Environment
+### Create Conda Environment
 ```bash
 conda create -n alignment -c bioconda samtools minimap2 -y
 ```
@@ -89,23 +91,23 @@ Activate environment:
 conda activate alignment
 ```
 
-### Step 5  Fix samtools Library Issue
+### Fix samtools Library Issue
 if any isuue is faced in using samtools there might be an isuue in library, hence use the following command and  installing required packages:
 ```bash
 conda install -c bioconda -c conda-forge samtools ncurses -y
 ```
-### Step 6  Index Reference Genome
+### Index Reference Genome
 ```bash
 samtools faidx GRCh38.fa
 ```
-### Step 7 Sequence Alignment
+### Sequence Alignment
 
 Aligning the reads:
 ```bash
 minimap2 -ax map-hifi -t 8 GRCh38.fa \
 m54238_180901_011437.Q20.fastq > aligned.sam
 ```
-### Step 8 Convert, Sort, and Index Alignment
+### Convert, Sort, and Index Alignment
 
 To convert SAM → BAM, sort, and index:
 ```bash
@@ -113,7 +115,7 @@ samtools view -bS aligned.sam | \
 samtools sort -o aligned.sorted.bam && \
 samtools index aligned.sorted.bam
 ```
-### Step 9  Alignment Statistics
+### Alignment Statistics
 
 Alignment quality was verified using:
 ```bash
@@ -134,71 +136,45 @@ Alignmnet part must provide you with the following output files:
 | aligned.sorted.bam.bai | BAM index |## Variant Calling
 
 
+## Variant Calling
 
-#  Variant Calling
+### Setup
 
-This section describes the variant calling workflow for PacBio HiFi reads using **Clair3** and **DeepVariant** within **Singularity** containers.  
-
----
-
-
-# 1. Pull Containers
-Download the Clair3 and DeepVariant containers from Docker Hub
+Pull Clair3 and DeepVariant containers:
 ```bash
 singularity pull clair3.sif docker://hkubal/clair3:latest
 singularity pull deepvariant.sif docker://google/deepvariant:1.6.0
 ```
-# 2.Identify Clair3 Model Path
-Find where the pre-trained models are stored inside the Clair3 container
-```bash
-singularity exec clair3.sif find / -type d -name "models" 2>/dev/null
-singularity exec clair3.sif ls /opt/models
-# For PacBio HiFi reads, we use: /opt/models/hifi
-```
-# 3️.Run Clair3 for Variant Calling
-Inputs: aligned BAM, reference genome, model path, threads, platform
- Output: VCF files containing variant calls
+
+### Run Clair3
 ```bash
 singularity exec clair3.sif \
-run_clair3.sh \
--b aligned.sorted.bam \
--f GRCh38.fa \
--m /opt/models/hifi \
--t 8 \
--p hifi \
--o clair3_output
-```
-# Rename outputs for clarity
-```bash
+    run_clair3.sh \
+    -b aligned.sorted.bam \
+    -f GRCh38.fa \
+    -m /opt/models/hifi \
+    -t 8 \
+    -p hifi \
+    -o clair3_output
+
 mv clair3_output/merge_output.vcf.gz clair3.vcf.gz
 mv clair3_output/merge_output.vcf.gz.tbi clair3.vcf.gz.tbi
 ```
-# 4️.Run DeepVariant for Variant Calling
-This command will call the variants and generate a vcf file
-Inputs: aligned BAM, reference genome
-Output: deepvariant.vcf.gz
+
+### Run DeepVariant
 ```bash
 singularity exec deepvariant.sif \
-/opt/deepvariant/bin/run_deepvariant \
---model_type=PACBIO \
---ref=GRCh38.fa \
---reads=aligned.sorted.bam \
---output_vcf=deepvariant.vcf.gz \
---num_shards=8
-```
-# 5.Indexing 
-for better use, index the DeepVariant VCF for downstream tools
-```bash
+    /opt/deepvariant/bin/run_deepvariant \
+    --model_type=PACBIO \
+    --ref=GRCh38.fa \
+    --reads=aligned.sorted.bam \
+    --output_vcf=deepvariant.vcf.gz \
+    --num_shards=8
+
 singularity exec deepvariant.sif tabix -p vcf deepvariant.vcf.gz
 ```
-# 6. Submit as SLURM Job
-Automate variant calling on an HPC cluster
-```bash
-sbatch variant_calling.slurm
-squeue -u arooj.sines
-```
-# Example SLURM script (variant_calling.slurm):
-Slurm will manage jobs.
+
+### SLURM Script
 ```bash
 #!/bin/bash
 #SBATCH --job-name=variant_calling
@@ -207,44 +183,49 @@ Slurm will manage jobs.
 #SBATCH --time=48:00:00
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=32G
-```
-# 7. module load singularity
-```bash
-# Run Clair3
+
+module load singularity
+
 singularity exec clair3.sif run_clair3.sh \
--b aligned.sorted.bam \
--f GRCh38.fa \
--m /opt/models/hifi \
--t 8 \
--p hifi \
--o clair3_output
+    -b aligned.sorted.bam \
+    -f GRCh38.fa \
+    -m /opt/models/hifi \
+    -t 8 \
+    -p hifi \
+    -o clair3_output
 
 mv clair3_output/merge_output.vcf.gz clair3.vcf.gz
 mv clair3_output/merge_output.vcf.gz.tbi clair3.vcf.gz.tbi
-```
-# 8. Run DeepVariant
-```bash
+
 singularity exec deepvariant.sif \
-/opt/deepvariant/bin/run_deepvariant \
---model_type=PACBIO \
---ref=GRCh38.fa \
---reads=aligned.sorted.bam \
---output_vcf=deepvariant.vcf.gz \
---num_shards=8
+    /opt/deepvariant/bin/run_deepvariant \
+    --model_type=PACBIO \
+    --ref=GRCh38.fa \
+    --reads=aligned.sorted.bam \
+    --output_vcf=deepvariant.vcf.gz \
+    --num_shards=8
 ```
-# Output Files
- clair3.vcf.gz
- 
- clair3.vcf.gz.tbi
- 
- deepvariant.vcf.gz
- 
- deepvariant.vcf.gz.tbi
- 
- variant_calling.slurm
 
+### Submit job:
+```bash
+sbatch variant_calling.slurm
+squeue -u $USER
+```
 
-### Running hap.py (Both Benchmarks in Parallel)
+### Output Files
+
+| File | Description |
+|------|-------------|
+| clair3.vcf.gz | Clair3 variant calls |
+| clair3.vcf.gz.tbi | Clair3 VCF index |
+| deepvariant.vcf.gz | DeepVariant variant calls |
+| deepvariant.vcf.gz.tbi | DeepVariant VCF index |
+
+---
+
+## Benchmarking
+
+### Running hap.py
 
 ```bash
 # Clair3 benchmark
@@ -268,20 +249,6 @@ nohup hap.py \
   --quiet > deepvariant_happy.log 2>&1 &
 ```
 
-### Monitor Progress
-
-```bash
-watch -n 30 'ls -lh clair3_benchmark.summary.csv deepvariant_benchmark.summary.csv 2>/dev/null'
-```
-
-### View Raw Results
-
-```bash
-cat clair3_benchmark.summary.csv
-cat deepvariant_benchmark.summary.csv
-```
-
----
 
 ### Results Summary
 
@@ -320,8 +287,8 @@ cat deepvariant_benchmark.summary.csv
 
 - **Clair3 outperforms DeepVariant on F1 Score** for both SNPs (15.87% vs 9.68%) and INDELs (9.23% vs 6.34%)
 - **DeepVariant achieves higher INDEL precision** (63.62% vs 56.79%), meaning fewer false positives per call
-- **Both callers show low recall** — likely due to using only a ¼ subset of the original reads, resulting in lower sequencing depth and many missed variants
-- Higher precision in both tools suggests that when variants *are* called, they are mostly correct — the main limitation is coverage depth from subsampling
+- **Both callers show low recall**, likely due to using only a ¼ subset of the original reads, resulting in lower sequencing depth and many missed variants
+- Higher precision in both tools suggests that when variants *are* called, they are mostly correct, the main limitation is coverage depth from subsampling
 
 
 ---
