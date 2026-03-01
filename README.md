@@ -24,12 +24,6 @@ variant-calling-pipeline/
 └── README.md
 ```
 
----
-
-## Data Preparation
-
----
-
 ## Data Preparation
 
 ### Data Download
