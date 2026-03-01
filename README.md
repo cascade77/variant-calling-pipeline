@@ -166,13 +166,12 @@ Alignment percentage <br>
 <img width="946" height="456" alt="image" src="https://github.com/user-attachments/assets/64c1dc18-bd83-4660-841d-89eacc4804d1" />
 
 ### Output Files
-File	Description
-GRCh38.fa	Reference genome
-GRCh38.fa.fai	Reference index
-aligned.sam	Raw alignment
-aligned.sorted.bam	Sorted BAM file
-aligned.sorted.bam.bai	BAM index
 
+- **GRCh38.fa** — Reference genome  
+- **GRCh38.fa.fai** — Reference index  
+- **aligned.sam** — Raw alignment  
+- **aligned.sorted.bam** — Sorted BAM file  
+- **aligned.sorted.bam.bai** — BAM index
 ## Variant Calling
 
 *To be added *
