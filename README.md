@@ -124,10 +124,7 @@ Alignment quality was verified using:
 samtools flagstat aligned.sorted.bam
 ```
 This provides mapping statistics such as:
-Total reads
-Mapped reads
-Properly aligned reads
-Alignment percentage <br>
+<br>
 <img width="946" height="456" alt="image" src="https://github.com/user-attachments/assets/64c1dc18-bd83-4660-841d-89eacc4804d1" />
 
 ### Output Files
