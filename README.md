@@ -142,22 +142,22 @@ This section describes the variant calling workflow for PacBio HiFi reads using 
 ---
 
 
-# 1️⃣ Pull Containers
-# Download the Clair3 and DeepVariant containers from Docker Hub
+# 1. Pull Containers
+Download the Clair3 and DeepVariant containers from Docker Hub
 ```bash
 singularity pull clair3.sif docker://hkubal/clair3:latest
 singularity pull deepvariant.sif docker://google/deepvariant:1.6.0
 ```
-# Identify Clair3 Model Path
-# Find where the pre-trained models are stored inside the Clair3 container
+# 2.Identify Clair3 Model Path
+Find where the pre-trained models are stored inside the Clair3 container
 ```bash
 singularity exec clair3.sif find / -type d -name "models" 2>/dev/null
 singularity exec clair3.sif ls /opt/models
 # For PacBio HiFi reads, we use: /opt/models/hifi
 ```
-# 3️⃣ Run Clair3 for Variant Calling
-# Inputs: aligned BAM, reference genome, model path, threads, platform
-# Output: VCF files containing variant calls
+# 3️.Run Clair3 for Variant Calling
+Inputs: aligned BAM, reference genome, model path, threads, platform
+ Output: VCF files containing variant calls
 ```bash
 singularity exec clair3.sif \
 run_clair3.sh \
@@ -174,8 +174,9 @@ mv clair3_output/merge_output.vcf.gz clair3.vcf.gz
 mv clair3_output/merge_output.vcf.gz.tbi clair3.vcf.gz.tbi
 ```
 # 4️⃣ Run DeepVariant for Variant Calling
-# Inputs: aligned BAM, reference genome
-# Output: deepvariant.vcf.gz
+this command will call the variants and generate a vcf file
+Inputs: aligned BAM, reference genome
+Output: deepvariant.vcf.gz
 ```bash
 singularity exec deepvariant.sif \
 /opt/deepvariant/bin/run_deepvariant \
@@ -185,12 +186,13 @@ singularity exec deepvariant.sif \
 --output_vcf=deepvariant.vcf.gz \
 --num_shards=8
 ```
-# Index the DeepVariant VCF for downstream tools
+# 5.Indexing 
+for better use, index the DeepVariant VCF for downstream tools
 ```bash
 singularity exec deepvariant.sif tabix -p vcf deepvariant.vcf.gz
 ```
-# 5️⃣ Optional: Submit as SLURM Job
-# Automate variant calling on an HPC cluster
+# 6. Submit as SLURM Job
+Automate variant calling on an HPC cluster
 ```bash
 sbatch variant_calling.slurm
 squeue -u arooj.sines
@@ -231,11 +233,11 @@ singularity exec deepvariant.sif \
 --num_shards=8
 ```
 # 6️⃣ Output Files (Deliverables for Person 3)
-# clair3.vcf.gz
-# clair3.vcf.gz.tbi
-# deepvariant.vcf.gz
-# deepvariant.vcf.gz.tbi
-# variant_calling.slurm
+ clair3.vcf.gz
+ clair3.vcf.gz.tbi
+ deepvariant.vcf.gz
+ deepvariant.vcf.gz.tbi
+ variant_calling.slurm
 
 
 ### Running hap.py (Both Benchmarks in Parallel)
