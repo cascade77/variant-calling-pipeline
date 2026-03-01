@@ -135,7 +135,7 @@ Alignmnet part must provide you with the following output files:
 
 
 
-# Person 3: Variant Calling
+#  Variant Calling
 
 This section describes the variant calling workflow for PacBio HiFi reads using **Clair3** and **DeepVariant** within **Singularity** containers.  
 
@@ -173,8 +173,8 @@ run_clair3.sh \
 mv clair3_output/merge_output.vcf.gz clair3.vcf.gz
 mv clair3_output/merge_output.vcf.gz.tbi clair3.vcf.gz.tbi
 ```
-# 4️⃣ Run DeepVariant for Variant Calling
-this command will call the variants and generate a vcf file
+# 4️.Run DeepVariant for Variant Calling
+This command will call the variants and generate a vcf file
 Inputs: aligned BAM, reference genome
 Output: deepvariant.vcf.gz
 ```bash
