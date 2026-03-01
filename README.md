@@ -1,4 +1,4 @@
-![benchmark_chart](https://github.com/user-attachments/assets/bd439189-c723-4363-94c5-e34b908b10db)# variant-calling-pipeline
+# variant-calling-pipeline
 
 A reproducible variant calling pipeline for PacBio HiFi sequencing data using 
 Clair3 and DeepVariant, benchmarked against the GIAB truth set.
