@@ -75,7 +75,7 @@ gunzip GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.gz
 ```
 ### Step 3  Rename Reference File
 
-The file was renamed for simplicity.
+Renaming for simplicity.
 ```bash
 mv GCA_000001405.15_GRCh38_no_alt_analysis_set.fna GRCh38.fa
 ```
@@ -88,11 +88,7 @@ Activate environment:
 ```bash
 conda activate alignment
 ```
-Verify installation:
-```bash
-samtools --version
-minimap2 --version
-```
+
 ### Step 5  Fix samtools Library Issue
 if any isuue is faced in using samtools there might be an isuue in library, hence use the following command and  installing required packages:
 ```bash
@@ -104,14 +100,14 @@ samtools faidx GRCh38.fa
 ```
 ### Step 7 Sequence Alignment
 
-HiFi reads were aligned to the reference genome using minimap2.
+Aligning the reads:
 ```bash
 minimap2 -ax map-hifi -t 8 GRCh38.fa \
 m54238_180901_011437.Q20.fastq > aligned.sam
 ```
 ### Step 8 Convert, Sort, and Index Alignment
 
-Convert SAM → BAM, sort, and index:
+To convert SAM → BAM, sort, and index:
 ```bash
 samtools view -bS aligned.sam | \
 samtools sort -o aligned.sorted.bam && \
@@ -130,12 +126,12 @@ This provides mapping statistics such as:
 ### Output Files
 Alignmnet part must provide you with the following output files:
 
-- **GRCh38.fa** — Reference genome  
-- **GRCh38.fa.fai** — Reference index  
-- **aligned.sam** — Raw alignment  
-- **aligned.sorted.bam** — Sorted BAM file  
-- **aligned.sorted.bam.bai** — BAM index
-## Variant Calling
+| File | Description |
+|------|-------------|
+| GRCh38.fa | Reference genome |
+| GRCh38.fa.fai | Reference index |
+| aligned.sorted.bam | Sorted alignment |
+| aligned.sorted.bam.bai | BAM index |## Variant Calling
 
 *To be added *
 
