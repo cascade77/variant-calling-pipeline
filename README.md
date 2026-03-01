@@ -133,7 +133,53 @@ Alignmnet part must provide you with the following output files:
 | aligned.sorted.bam | Sorted alignment |
 | aligned.sorted.bam.bai | BAM index |## Variant Calling
 
-*To be added *
+# Variant Calling Pipeline – HG002 (GRCh38)
+
+## Role
+Variant Calling Engineer
+
+## Objective
+Perform variant calling on aligned HG002 sequencing data using 
+Clair3 and DeepVariant within containerized environments on an HPC cluster.
+
+---
+
+## Input Files
+- aligned.sorted.bam
+- aligned.sorted.bam.bai
+- GRCh38.fa
+
+---
+
+## Tools Used
+- Singularity
+- Clair3
+- DeepVariant
+- SLURM
+- samtools
+
+---
+
+## Pipeline Overview
+
+### 1. Containerized Execution
+
+Both variant callers were executed using Singularity containers 
+to ensure reproducibility and avoid dependency conflicts.
+
+---
+
+### 2. Clair3 Variant Calling
+
+Clair3 was executed with:
+
+```bash
+singularity exec clair3.sif run_clair3.sh \
+  --bam aligned.sorted.bam \
+  --ref GRCh38.fa \
+  --threads 16 \
+  --platform ont \
+  --output clair3_output
 
 ---
 
