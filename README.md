@@ -232,11 +232,15 @@ singularity exec deepvariant.sif \
 --output_vcf=deepvariant.vcf.gz \
 --num_shards=8
 ```
-# 6️⃣ Output Files (Deliverables for Person 3)
+# 6️⃣ Output Files
  clair3.vcf.gz
+ 
  clair3.vcf.gz.tbi
+ 
  deepvariant.vcf.gz
+ 
  deepvariant.vcf.gz.tbi
+ 
  variant_calling.slurm
 
 
