@@ -19,8 +19,7 @@ variant-calling-pipeline/
 ├── alignment/
 │   └── align.sh
 ├── variant_calling/
-│   ├── clair3.slurm
-│   └── deepvariant.slurm
+│   └── variant_calling.slurm
 ├── benchmarking/
 │   └── benchmark.sh
 └── README.md
