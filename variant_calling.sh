@@ -1,21 +1,4 @@
 
-Notice:
-- No HPC
-- No SLURM
-- No errors
-- No personal notes
-- Clean reproduction instructions
-
----
-
-# ✅ 2️⃣ Now Create This File: `variant_calling.sh`
-
-Create a new file in GitHub called:
-
-`variant_calling.sh`
-
-Paste this inside:
-
 ```bash
 #!/bin/bash
 
